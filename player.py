@@ -17,6 +17,7 @@ class Player():
         ones = self.amt[0]
         if ones == 5:
             self.amt[0] += 2
+            return
         for i in range(1, 6):
             if self.amt[i] == 5:
                 self.amt[i] += 2 #pure bz
