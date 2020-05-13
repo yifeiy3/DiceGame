@@ -7,12 +7,22 @@ class Player():
         self.amt = [0, 0, 0, 0, 0, 0] #1-6
 
     def roll(self):
+        self.diceroll = []
+        self.amt = [0, 0, 0, 0, 0, 0]
         for i in range(6):
             r = random.randrange(1, 6)
             self.amt[r-1] += 1
             self.diceroll.append(r)
+        while(self.checkreroll()):
+            self.roll()
         self.checkbz()
-    
+
+    def checkreroll(self): #consecutive dice we reroll
+        for i in range(6):
+            if self.amt[i-1] > 1:
+                return False
+        return True
+
     def checkbz(self):
         ones = self.amt[0]
         if ones == 5:
