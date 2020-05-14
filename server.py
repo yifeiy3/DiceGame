@@ -22,6 +22,8 @@ idCount = 0
 
 def threaded_client(conn, p, gameID):
     global idCount
+    conn.send(str.encode(str(p))) #inform the current player of the game
+
     reply = ""
     while True:
         try:
@@ -33,14 +35,17 @@ def threaded_client(conn, p, gameID):
                 if not data:
                     break
                 else: #TODO: basic structure need to be changed
-                    if data == 'start':
-                        game.yao()
-                    elif data == 'jiao':
-                        game.jiao(data)
-                    elif data == 'kai':
-                        game.kai(data)
-
-                    conn.sendall(pickle.dumps(game))
+                    if data == "reset":
+                        game.reset()
+                    elif data != "get":
+                        if data == 'start':
+                            game.yao()
+                        elif data == 'kai':
+                            game.kai(data) #TODO: How to handle win?
+                        else:
+                            param = data.split(",")
+                            game.jiao(int(param[1]), int(param[0]), bool(param[2]))
+                    conn.sendall(pickle.dumps(game)) #send the game information
             else:
                 break
         except:
