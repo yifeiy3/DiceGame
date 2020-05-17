@@ -1,6 +1,5 @@
 
 from player import Player
-import pygame
 import random
 
 # def less(a, b):
@@ -17,9 +16,10 @@ class Game():
         self.ready = False #whether the game is ready to play
         self.roll = False #whether rolled the dice
         self.z = False #include ones or not
+        self.nz = False
         self.currV = 0
         self.currAmt = 3 #start with 3, but can have 2 if no ones
-        self.currTurn = random.randrange(1) # 0 or 1, if 0, player 1 first, else player 2 first
+        self.currTurn = random.randint(0,1) # 0 or 1, if 0, player 1 first, else player 2 first
         self.opened = False
         self.winner = -1
     
@@ -34,6 +34,8 @@ class Game():
     def kai(self, val, amt):
         #when player opens, player = 0 or 1 for 1st or second player, based on currTurn
         if self.roll:
+            if val == 0:
+                self.winner = 1 - self.currTurn
             total = self.p1.amt[val-1] + self.p2.amt[val-1]
             if not self.z:
                 total += self.p1.amt[0] + self.p2.amt[0] #add 1's if flag false
@@ -46,7 +48,7 @@ class Game():
         else:
             return
     
-    def jiao(self, nv, namt, nz):
+    def jiao(self, nv, namt):
         if self.roll:
             # if nz > self.z: #nz = True, z = False
             #     if namt < self.currAmt - 1:
@@ -59,7 +61,7 @@ class Game():
             #         return False
             #     if not nz and nv == 1:
             #         return False
-            self.z = nz
+            self.z = self.nz
             self.currv = nv
             self.currAmt = namt
             self.currTurn = 1 - self.currTurn
@@ -74,4 +76,6 @@ class Game():
         self.currAmt = 2
         self.roll = False
         self.winner = -1
+        self.z = False
+        self.nz = False
         self.opened = False

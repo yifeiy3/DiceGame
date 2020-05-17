@@ -10,7 +10,7 @@ class Player():
         self.diceroll = []
         self.amt = [0, 0, 0, 0, 0, 0]
         for i in range(6):
-            r = random.randrange(1, 6)
+            r = random.randint(1, 6)
             self.amt[r-1] += 1
             self.diceroll.append(r)
         while(self.checkreroll()):

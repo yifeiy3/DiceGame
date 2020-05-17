@@ -3,7 +3,7 @@ from _thread import *
 import pickle
 from game import Game
 
-server = "192.168.1.104"
+server = "127.0.0.1"
 port = 5005
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,8 +23,7 @@ idCount = 0
 def threaded_client(conn, p, gameID):
     global idCount
     conn.send(str.encode(str(p))) #inform the current player of the game
-
-    reply = ""
+    print(gameID)
     while True:
         try:
             data = conn.recv(4096).decode("utf-8")
@@ -41,14 +40,16 @@ def threaded_client(conn, p, gameID):
                         if data == 'start':
                             game.yao()
                         elif data == 'kai':
-                            game.kai(data) #TODO: How to handle win?
+                            game.kai(game.currV, game.currAmt) #TODO: How to handle win?
                         else:
+                            print("i got here with data: {0}".format(data))
                             param = data.split(",")
-                            game.jiao(int(param[1]), int(param[0]), bool(param[2]))
+                            game.jiao(int(param[1]), int(param[0]))
                     conn.sendall(pickle.dumps(game)) #send the game information
             else:
                 break
         except:
+            print("Some error when receive data")
             break
 
     print("Lost connection")
@@ -70,10 +71,10 @@ while True: #listen for connections
     p = 0
     gameID = (idCount - 1)//2
     if idCount % 2 == 1:
-        games[gameID] = Game
+        games[gameID] = Game()
         print("Creating a new game")
     else:
         games[gameID].ready = True
         p = 1
 
-    start_new_thread(threaded_client, (conn,))
+    start_new_thread(threaded_client, (conn, p, gameID))

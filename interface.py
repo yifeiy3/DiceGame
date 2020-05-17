@@ -11,6 +11,11 @@ pygame.display.set_caption("Client")
 font = pygame.font.SysFont('comicsans', 40)
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
+dimage = ["diceImage/d1.bmp", "diceImage/d2.bmp", "diceImage/d3.bmp", "diceImage/d4.bmp", "diceImage/d5.bmp", "diceImage/d6.bmp"]
+limage = []
+for it in dimage:
+    image = pygame.image.load(it)
+    limage.append(pygame.transform.scale(image, (50, 50)))
 
 def less(a, b):
     if(b == 1):
@@ -18,17 +23,33 @@ def less(a, b):
     else:
         return a <= b
 
+def drawDices(game, p, hoff, woff):
+    if p == 0:
+        pr = game.p1
+    elif p == 1:
+        pr = game.p2
+    else:
+        pr = game.v
+    for i in range(len(pr.diceroll)):
+        nbr = pr.diceroll[i]
+        win.blit(limage[nbr-1], (hoff+i*70, woff))
+        
+    
 def checkValidMove(game, nv, namt, nz):
     if nz > game.z: #nz = True, z = False
         if namt < game.currAmt - 1:
+            print("a")
             return False
     elif nz < game.z:
         if namt < game.currAmt + 2 or nv == 1:
+            print("b")
             return False
     else:
         if namt < game.currAmt or (namt == game.currAmt and less(nv, game.currV)):
+            print("c")
             return False
         if not nz and nv == 1:
+            print("d")
             return False
     return True
 
@@ -107,10 +128,10 @@ class InputBox():
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
 rollbtn = Button((128, 128, 128), 325, 325, 50, 50, "Roll")
-zButton = [Button((128, 128, 128), 550, 200, 50, 100, "Zhai"), Button((128, 128, 128), 550, 300, 50, 100, "Fei")]
-AButton = [Button((255, 0, 0), 625, 200, 50, 100, "Open"), Button((255, 0, 0), 625, 300, 50, 100, "Call")]
+zButton = [Button((128, 128, 128), 200, 550, 100, 50, "Zhai"), Button((128, 128, 128), 350, 550, 100, 50, "Fei")]
+AButton = [Button((255, 0, 0), 200, 625, 100, 50, "Open"), Button((255, 0, 0), 350, 625, 100, 50, "Call")]
 
-callInput = [InputBox(400, 300, 50, 100), InputBox(400, 500, 50, 100)]
+callInput = [InputBox(200, 475, 100, 50), InputBox(350, 475, 100, 50)]
 
 def redrawWindow(game, p):
     win.fill((255,255,255)) #white bg
@@ -126,12 +147,35 @@ def redrawWindow(game, p):
             text1 = font.render("Roll the dice?", 1, (0,0,0), True)
             rollbtn.draw(win)
         else:
-            text1 = font.render("Waiting for player {0} to roll".format(player), 1, (0,0,0), True)
+            text1 = font.render("Waiting for player {0} to roll".format(getPname(game, 1-p)), 1, (0,0,0), True)
         win.blit(text1, (100, 200))
+    elif game.opened:
+        if game.winner == p:
+            ttext = font.render("You Won!", 1, (255, 0, 0), True)
+        elif p == 2:
+            winner = getPname(game, game.winner)
+            ttext = font.render("Winner is: {0}".format(winner), 1, (255, 0, 0), True)
+        else:
+            ttext = font.render("Sorry, you lost.", 1, (0, 0, 255), True)
+        win.blit(ttext, (100, 600))
+        p1 = getPname(game, 0)
+        p2 = getPname(game, 1)
+        tt1 = font.render(p1 + " has: ", 1, (0, 0, 0), True)
+        #TODO: draw dice here
+        drawDices(game, 0, 100, 230)
+        tt2 = font.render(p2 + " has: ", 1, (0, 0, 0), True)
+        drawDices(game, 1, 100, 380)
+        #TODO: draw dice here
+        win.blit(tt1, (100, 170))
+        win.blit(tt2, (100, 300))
+        res = font.render("Opened under condition: Amt: {0}, Val: {1}: Zhai?: {2}".format(game.currAmt, game.currV, game.z), 1, (255, 255, 255), True)
+        win.blit(res, (100, 500))
+        pygame.display.update()
     else:
         #TODO: draw the dice, somehow..
         info = font.render("Current amt: {0}, val: {1}, zhai? :{2}".format(game.currAmt, game.currV, game.z), 1, (0,0,0), True)
         win.blit(info, (50, 50))
+        drawDices(game, p, 130, 230)
         if game.currTurn == p:
             for i in range(2):
                 zButton[i].draw(win)
@@ -139,11 +183,11 @@ def redrawWindow(game, p):
                 callInput[i].draw(win)
             t1 = font.render("Number?", 1, (0, 0, 0), True)
             t2 = font.render("Val?", 1, (0,0,0), True)
-            win.blit(t1, (350, 320))
-            win.blit(t2, (350, 520))
+            win.blit(t1, (195, 440))
+            win.blit(t2, (370, 440))
         else:
             t1 = font.render("Waiting for the other player to perform action", 1, (0,0,0), True)
-            win.blit(t1, (350, 100))
+            win.blit(t1, (50, 500))
 
     pygame.display.update()
 
@@ -159,41 +203,26 @@ def main():
             game = n.send("get")
         except:
             run = False
-            print("couldnt get game")
+            print("couldnt get game!")
             break
-        
         if game.opened:
-            if game.winner == player:
-                ttext = font.render("You Won!", 1, (255, 0, 0), True)
-            elif player == 2:
-                winner = getPname(game, game.winner)
-                ttext = font.render("Winner is: {0}".format(winner), 1, (255, 0, 0), True)
-            else:
-                ttext = font.render("Sorry, you lost.", 1, (0, 0, 255), True)
-            win.blit(ttext, (100, 100))
-            p1 = getPname(game, 0)
-            p2 = getPname(game, 1)
-            tt1 = font.render(p1 + " has: ", 1, (255, 255, 255), True)
-            #TODO: draw dice here
-            tt2 = font.render(p2 + " has: ", 1, (255, 255, 255), True)
-            #TODO: draw dice here
-            win.blit(tt1, (150, 100))
-            win.blit(tt2, (300, 100))
-            res = font.render("Opened under condition: Amt: {0}, Val: {1}: Zhai?: {2}".format(game.currAmt, game.currV, game.z), 1, (255, 255, 255), True)
-            win.blit(res, (500, 100))
-            pygame.display.update()
-            pygame.time.delay(5000) #show the screen for 5 seconds
-            try:
-                game = n.send("reset")
-            except:
-                run = False
-                print("Couldn't get game")
-                break
-                
+            redrawWindow(game, player)
+            pygame.time.delay(10000) #show the screen for 10 seconds
+            if player == 1:
+                try:
+                    game = n.send("reset")
+                except:
+                    run = False
+                    print("Couldn't get game!")
+                    break
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
+            
+            for ci in callInput:
+                ci.handle_event(event)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if player == game.currTurn:
@@ -205,17 +234,23 @@ def main():
                         if AButton[0].isOver(pos):
                             n.send("kai")
                         else:
-                            zflag = False
                             if zButton[0].isOver(pos):
-                                zflag = True
+                                print("zflag button is clicked!")
+                                game.nz = True
+                            elif zButton[1].isOver(pos):
+                                game.nz = False
                             elif AButton[1].isOver(pos):
                                 #number, value, zhai or not to play
-                                if checkValidMove(game, int(callInput[1].text), int(callInput[0].text), zflag):
-                                    data = callInput[0].text + "," + callInput[1].text + "," + str(zflag)
+                                print("call button is clicked")
+                                valid = checkValidMove(game, int(callInput[1].text), int(callInput[0].text), game.nz)
+                                print(valid)
+                                if valid:
+                                    data = callInput[0].text + "," + callInput[1].text
                                     n.send(data)
                                 else:
+                                    print("we got here ha")
                                     txt = font.render("Invalid Move, check the current called amount and value", 1, (255,0,0), True)
-                                    win.blit(txt, (50, 100))
+                                    win.blit(txt, (400, 100))
         redrawWindow(game, player)
     
 def menu_screen():
