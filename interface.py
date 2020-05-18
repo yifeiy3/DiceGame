@@ -51,6 +51,7 @@ def checkValidMove(game, nv, namt, nz):
         if not nz and nv == 1:
             print("d")
             return False
+    print("this is a valid move with val: {0}, amt: {1}, z: {2}".format(nv, namt, nz))
     return True
 
 def getPname(game, p):
@@ -85,6 +86,9 @@ class Button():
             if pos[1] > self.y and pos[1] < self.y + self.height:
                 return True
         return False
+    
+    def recolor(self, ncolor):
+        self.color = ncolor
 
 class InputBox():
     def __init__(self, x, y, w, h, text=''):
@@ -126,6 +130,10 @@ class InputBox():
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
         # Blit the rect.
         pygame.draw.rect(screen, self.color, self.rect, 2)
+    
+    def renewText(self):
+        self.text = ''
+        self.txt_surface = font.render(self.text, True, self.color)
 
 rollbtn = Button((128, 128, 128), 325, 325, 50, 50, "Roll")
 zButton = [Button((128, 128, 128), 200, 550, 100, 50, "Zhai"), Button((128, 128, 128), 350, 550, 100, 50, "Fei")]
@@ -168,8 +176,10 @@ def redrawWindow(game, p):
         #TODO: draw dice here
         win.blit(tt1, (100, 170))
         win.blit(tt2, (100, 300))
-        res = font.render("Opened under condition: Amt: {0}, Val: {1}: Zhai?: {2}".format(game.currAmt, game.currV, game.z), 1, (255, 255, 255), True)
-        win.blit(res, (100, 500))
+        res1 = font.render("Opened under condition:", 1, (0, 0, 0), True)
+        res2 = font.render("Amt: {0}, Val: {1}: Zhai?: {2}".format(game.currAmt, game.currV, game.z), 1, (0, 0, 0), True)
+        win.blit(res1, (100, 500))
+        win.blit(res2, (100, 550))
         pygame.display.update()
     else:
         #TODO: draw the dice, somehow..
@@ -197,6 +207,7 @@ def main():
     clock = pygame.time.Clock()
     n = Network()
     player = int(n.getPlayer())
+    zhai = False
     while run:
         clock.tick(60)
         try:
@@ -210,6 +221,11 @@ def main():
             pygame.time.delay(10000) #show the screen for 10 seconds
             if player == 1:
                 try:
+                    zhai = False
+                    for cii in callInput:
+                        cii.renewText()
+                    zButton[0].recolor((128, 128, 128))
+                    zButton[1].recolor((128, 128, 128))
                     game = n.send("reset")
                 except:
                     run = False
@@ -229,28 +245,38 @@ def main():
                     pos = pygame.mouse.get_pos()
                     if not game.roll:
                         if rollbtn.isOver(pos):
-                            n.send("start")
+                            game = n.send("start")
                     else:
                         if AButton[0].isOver(pos):
-                            n.send("kai")
+                            game = n.send("kai")
                         else:
                             if zButton[0].isOver(pos):
                                 print("zflag button is clicked!")
-                                game.nz = True
+                                zhai = True
+                                zButton[0].recolor((0, 255, 0))
+                                zButton[1].recolor((128, 128, 128))
                             elif zButton[1].isOver(pos):
-                                game.nz = False
+                                zhai = False
+                                zButton[1].recolor((0, 255, 0))
+                                zButton[0].recolor((128, 128, 128))
                             elif AButton[1].isOver(pos):
                                 #number, value, zhai or not to play
                                 print("call button is clicked")
-                                valid = checkValidMove(game, int(callInput[1].text), int(callInput[0].text), game.nz)
-                                print(valid)
+                                valid = checkValidMove(game, int(callInput[1].text), int(callInput[0].text), zhai)
                                 if valid:
-                                    data = callInput[0].text + "," + callInput[1].text
-                                    n.send(data)
+                                    data = callInput[0].text + "," + callInput[1].text + "," + str(zhai)
+                                    for cii in callInput:
+                                        cii.renewText()
+                                    zButton[0].recolor((128, 128, 128))
+                                    zButton[1].recolor((128, 128, 128))
+                                    game = n.send(data)
                                 else:
-                                    print("we got here ha")
+                                    print("we got here haha")
                                     txt = font.render("Invalid Move, check the current called amount and value", 1, (255,0,0), True)
-                                    win.blit(txt, (400, 100))
+                                    win.blit(txt, (40, 400))
+                                    pygame.display.update()
+                                    pygame.time.delay(2000)
+
         redrawWindow(game, player)
     
 def menu_screen():

@@ -48,7 +48,7 @@ class Game():
         else:
             return
     
-    def jiao(self, nv, namt):
+    def jiao(self, nv, namt, nz):
         if self.roll:
             # if nz > self.z: #nz = True, z = False
             #     if namt < self.currAmt - 1:
@@ -61,12 +61,13 @@ class Game():
             #         return False
             #     if not nz and nv == 1:
             #         return False
-            self.z = self.nz
-            self.currv = nv
+            self.z = nz
+            self.currV = nv
             self.currAmt = namt
             self.currTurn = 1 - self.currTurn
             return True
         else:
+            print("bad call with amt {0}, value {1}".format(namt, nv))
             return False
 
     def reset(self):

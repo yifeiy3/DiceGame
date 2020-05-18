@@ -4,7 +4,7 @@ import pickle
 from game import Game
 
 server = "127.0.0.1"
-port = 5005
+port = 8888
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -33,18 +33,26 @@ def threaded_client(conn, p, gameID):
 
                 if not data:
                     break
-                else: #TODO: basic structure need to be changed
+                else: 
                     if data == "reset":
                         game.reset()
                     elif data != "get":
                         if data == 'start':
                             game.yao()
                         elif data == 'kai':
-                            game.kai(game.currV, game.currAmt) #TODO: How to handle win?
+                            game.kai(game.currV, game.currAmt) 
                         else:
                             print("i got here with data: {0}".format(data))
                             param = data.split(",")
-                            game.jiao(int(param[1]), int(param[0]))
+                            if(param[2] == "False"):
+                                nz = False
+                            else:
+                                nz = True
+                            game.jiao(int(param[1]), int(param[0]), nz)
+                            # print(game.currV)
+                            # print(game.z)
+                            # print(nz)
+                            #print(bool(param[2]))
                     conn.sendall(pickle.dumps(game)) #send the game information
             else:
                 break
