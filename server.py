@@ -36,6 +36,8 @@ def threaded_client(conn, p, gameID):
                 else: 
                     if data == "reset":
                         game.reset()
+                    elif data[0] == 'u':
+                        game.rename(p, data[1:])
                     elif data != "get":
                         if data == 'start':
                             game.yao()

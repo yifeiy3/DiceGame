@@ -23,6 +23,14 @@ class Game():
         self.opened = False
         self.winner = -1
     
+    def rename(self, p, name):
+        if p == 0:
+            self.p1.rename(name)
+        elif p == 1:
+            self.p2.rename(name)
+        else:
+            return
+            
     def yao(self):
         if not self.ready or self.roll: #done rolling or not ready
             return False

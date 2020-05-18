@@ -112,7 +112,6 @@ class InputBox():
             if self.active:
                 if event.key == pygame.K_RETURN:
                     print(self.text)
-                    self.text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:
@@ -202,12 +201,18 @@ def redrawWindow(game, p):
     pygame.display.update()
 
 
-def main():
+def main(username):
     run = True
     clock = pygame.time.Clock()
     n = Network()
     player = int(n.getPlayer())
     zhai = False
+    if username != '':
+        try:
+            game = n.send("u{0}".format(username))
+        except:
+            run = False
+            print("couldnt get game!")
     while run:
         clock.tick(60)
         try:
@@ -282,23 +287,38 @@ def main():
 def menu_screen():
     run = True
     clock = pygame.time.Clock()
+    unameInput = InputBox(230, 500, 200, 50)
 
     while run:
         clock.tick(60)
         win.fill((128, 128, 128))
-        font = pygame.font.SysFont("comicsans", 60)
-        text = font.render("Click to Play!", 1, (255,0,0))
-        win.blit(text, (100,200))
+        fontt = pygame.font.SysFont("comicsans", 60)
+        text = fontt.render("Click to Play!", 1, (255,0,0))
+        win.blit(text, (200,200))
+        text2 = font.render("Username(Optional)", 1, (255, 0, 0))
+        win.blit(text2, (200, 450))
+
+        unameInput.draw(win)
         pygame.display.update()
 
+        username = ''
         for event in pygame.event.get():
+            unameInput.handle_event(event)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                run = False
+                if unameInput.text != '':
+                    username = unameInput.text
+                if not unameInput.rect.collidepoint(event.pos):
+                    run = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    if unameInput.text != '':
+                        username = unameInput.text
+                    run = False
 
-    main()
+    main(username)
 
 while True:
     menu_screen()

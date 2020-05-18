@@ -6,6 +6,9 @@ class Player():
         self.diceroll = []
         self.amt = [0, 0, 0, 0, 0, 0] #1-6
 
+    def rename(self, name):
+        self.name = name
+    
     def roll(self):
         self.diceroll = []
         self.amt = [0, 0, 0, 0, 0, 0]
