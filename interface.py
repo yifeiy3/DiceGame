@@ -29,27 +29,34 @@ def drawDices(game, p, hoff, woff):
     elif p == 1:
         pr = game.p2
     else:
-        pr = game.v
+        p1name = getPname(game, 0)
+        p2name = getPname(game, 1)
+        p1info = font.render("{0} has won: {1} times".format(p1name, game.wontally[0]), 1, (255, 0, 0), True)
+        p2info = font.render("{0} has won: {1} times".format(p2name, game.wontally[1]), 1, (0, 0, 255), True)
+        win.blit(p1info, (hoff, woff))
+        win.blit(p2info, (hoff, woff + 70))
+        return
     for i in range(len(pr.diceroll)):
         nbr = pr.diceroll[i]
         win.blit(limage[nbr-1], (hoff+i*70, woff))
+    return
         
     
 def checkValidMove(game, nv, namt, nz):
     if nz > game.z: #nz = True, z = False
         if namt < game.currAmt - 1:
-            print("a")
+            #print("a")
             return False
     elif nz < game.z:
         if namt < game.currAmt + 2 or nv == 1:
-            print("b")
+            #print("b")
             return False
     else:
         if namt < game.currAmt or (namt == game.currAmt and less(nv, game.currV)):
-            print("c")
+            #print("c")
             return False
         if not nz and nv == 1:
-            print("d")
+            #print("d")
             return False
     print("this is a valid move with val: {0}, amt: {1}, z: {2}".format(nv, namt, nz))
     return True
@@ -59,6 +66,8 @@ def getPname(game, p):
         player = game.p1.name
     elif p == 1:
         player = game.p2.name
+    elif p != -1:
+        player = getPname(game, game.currTurn)
     else:
         player = "Spectator"
     return player
@@ -159,9 +168,9 @@ def redrawWindow(game, p):
     elif game.opened:
         if game.winner == p:
             ttext = font.render("You Won!", 1, (255, 0, 0), True)
-        elif p == 2:
+        elif p == -1:
             winner = getPname(game, game.winner)
-            ttext = font.render("Winner is: {0}".format(winner), 1, (255, 0, 0), True)
+            ttext = font.render("Winner is: {0}".format(winner), 1, (0, 0, 0), True)
         else:
             ttext = font.render("Sorry, you lost.", 1, (0, 0, 255), True)
         win.blit(ttext, (100, 600))
@@ -201,12 +210,14 @@ def redrawWindow(game, p):
     pygame.display.update()
 
 
-def main(username):
+def main(username, viewer):
     run = True
     clock = pygame.time.Clock()
-    n = Network()
+    n = Network(viewer)
     player = int(n.getPlayer())
     zhai = False
+    if player == -1:
+        print("Good shit")
     if username != '':
         try:
             game = n.send("u{0}".format(username))
@@ -267,17 +278,23 @@ def main(username):
                             elif AButton[1].isOver(pos):
                                 #number, value, zhai or not to play
                                 print("call button is clicked")
-                                valid = checkValidMove(game, int(callInput[1].text), int(callInput[0].text), zhai)
-                                if valid:
-                                    data = callInput[0].text + "," + callInput[1].text + "," + str(zhai)
-                                    for cii in callInput:
-                                        cii.renewText()
-                                    zButton[0].recolor((128, 128, 128))
-                                    zButton[1].recolor((128, 128, 128))
-                                    game = n.send(data)
-                                else:
-                                    print("we got here haha")
-                                    txt = font.render("Invalid Move, check the current called amount and value", 1, (255,0,0), True)
+                                try:
+                                    valid = checkValidMove(game, int(callInput[1].text), int(callInput[0].text), zhai)
+                                    if valid:
+                                        data = callInput[0].text + "," + callInput[1].text + "," + str(zhai)
+                                        for cii in callInput:
+                                            cii.renewText()
+                                        zButton[0].recolor((128, 128, 128))
+                                        zButton[1].recolor((128, 128, 128))
+                                        game = n.send(data)
+                                    else:
+                                        print("we got here haha")
+                                        txt = font.render("Invalid Move, check amount and value", 1, (255,0,0), True)
+                                        win.blit(txt, (40, 400))
+                                        pygame.display.update()
+                                        pygame.time.delay(2000)
+                                except:
+                                    txt = font.render("Invalid Move, check amount and value", 1, (255,0,0), True)
                                     win.blit(txt, (40, 400))
                                     pygame.display.update()
                                     pygame.time.delay(2000)
@@ -286,8 +303,10 @@ def main(username):
     
 def menu_screen():
     run = True
+    viewer = False
     clock = pygame.time.Clock()
     unameInput = InputBox(230, 500, 200, 50)
+    spectate = Button((255, 255, 255), 230, 560, 200, 50, "Spectate")
 
     while run:
         clock.tick(60)
@@ -299,6 +318,7 @@ def menu_screen():
         win.blit(text2, (200, 450))
 
         unameInput.draw(win)
+        spectate.draw(win)
         pygame.display.update()
 
         username = ''
@@ -310,6 +330,9 @@ def menu_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if unameInput.text != '':
                     username = unameInput.text
+                if spectate.isOver(event.pos):
+                    viewer = True
+                    run = False
                 if not unameInput.rect.collidepoint(event.pos):
                     run = False
             if event.type == pygame.KEYDOWN:
@@ -318,7 +341,7 @@ def menu_screen():
                         username = unameInput.text
                     run = False
 
-    main(username)
+    main(username, viewer)
 
 while True:
     menu_screen()

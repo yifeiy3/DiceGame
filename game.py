@@ -13,6 +13,7 @@ class Game():
         self.p1 = Player(player1)
         self.p2 = Player(player2)
         self.v = viewer
+        self.wontally = [0, 0]
         self.ready = False #whether the game is ready to play
         self.roll = False #whether rolled the dice
         self.z = False #include ones or not
@@ -50,9 +51,11 @@ class Game():
             if total < amt:
                 self.opened = True
                 self.winner = self.currTurn
+                self.wontally[self.winner] += 1
             else:
                 self.opened = True
                 self.winner = 1 - self.currTurn
+                self.wontally[self.winner] += 1
         else:
             return
     
@@ -69,7 +72,10 @@ class Game():
             #         return False
             #     if not nz and nv == 1:
             #         return False
-            self.z = nz
+            if nz == "False":
+                self.z = False
+            elif nz == "True":
+                self.z = True #if no specify, we follow previous rule
             self.currV = nv
             self.currAmt = namt
             self.currTurn = 1 - self.currTurn
