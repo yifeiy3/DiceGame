@@ -83,16 +83,16 @@ while True: #listen for connections
         print("bad connection")
         break
     if d == "viewer":
-        if idCount < 1:
-            print("no games yet")
-            break
+        if len(games) == 0:
+            conn.send(str.encode("no games yet"))
+            continue
         p = -1
     else:
         idCount += 1 #this part probably will be changed
         p = 0
         gameID = (idCount - 1)//2
         if idCount % 2 == 1:
-            games[gameID] = Game()
+            games[gameID] = Game(gameID)
             print("Creating a new game")
         else:
             games[gameID].ready = True

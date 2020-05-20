@@ -153,7 +153,9 @@ def redrawWindow(game, p):
     win.fill((255,255,255)) #white bg
     player = getPname(game, p)
     usernm = font.render("You are player: {0}".format(player), 1, (0,0,0), True)
+    gid = font.render("Game Id: {0}".format(str(game.id)), 1, (0,0,0), True)
     win.blit(usernm, (60, 100))
+    win.blit(gid, (530, 20))
 
     if not game.ready:
         text = font.render("Waiting for players", 1, (0,0,0), True)
@@ -209,15 +211,73 @@ def redrawWindow(game, p):
 
     pygame.display.update()
 
+def spectate_menuscreen(net):
+    run = True
+    clock = pygame.time.Clock()
+    gamebtns = [Button((255, 255, 255), 230, 200+i*70, 200, 50, "Game {0}".format(i)) for i in range(5)]
+
+    while run:
+        clock.tick(60)
+        win.fill((128, 128, 128))
+        for btns in gamebtns:
+            btns.draw(win)
+        
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                run = False
+    return
+
+def player_menuscreen(n):
+    run = True
+    clock = pygame.time.Clock()
+    abutns = [Button((255, 255, 255), 230, 300, 200, 50, "New"), Button((255, 255, 255), 230, 400, 200, 50, "Join")]
+
+    while run:
+        clock.tick(60)
+        win.fill((128, 128, 128))
+        for btns in abutns:
+            btns.draw(win)
+        
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if abutns[0].isOver(event.pos):
+                    return 0
+                elif abutns[1].isOver(event.pos):
+                    return 1
+    return 0
 
 def main(username, viewer):
     run = True
     clock = pygame.time.Clock()
     n = Network(viewer)
-    player = int(n.getPlayer())
+    if viewer == False:
+        if player_menuscreen(n) == 1:
+            spectate_menuscreen(n)
+    try:
+        player = int(n.getPlayer())
+        print(player)
+    except:
+        win.fill((128, 128, 128))
+        fontt = pygame.font.SysFont("comicsans", 60)
+        text = fontt.render("No games yet!", 1, (255,0,0))
+        win.blit(text, (200,200))
+        pygame.display.update()
+        pygame.time.delay(2000)
+        menu_screen()
+    if viewer == True:
+        spectate_menuscreen(n)
+
     zhai = False
-    if player == -1:
-        print("Good shit")
+
     if username != '':
         try:
             game = n.send("u{0}".format(username))

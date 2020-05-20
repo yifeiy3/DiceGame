@@ -9,10 +9,11 @@ import random
 #         return a <= b
 
 class Game():
-    def __init__(self, player1='p1', player2='p2', viewer=None):
+    def __init__(self, theid, player1='p1', player2='p2', viewer=None):
         self.p1 = Player(player1)
         self.p2 = Player(player2)
         self.v = viewer
+        self.id = theid
         self.wontally = [0, 0]
         self.ready = False #whether the game is ready to play
         self.roll = False #whether rolled the dice
