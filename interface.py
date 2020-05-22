@@ -62,6 +62,7 @@ def checkValidMove(game, nv, namt, nz):
     return True
 
 def getPname(game, p):
+    #print("getPname is called with p = {0}".format(p))
     if p == 0:
         player = game.p1.name
     elif p == 1:
@@ -214,23 +215,33 @@ def redrawWindow(game, p):
 def spectate_menuscreen(net):
     run = True
     clock = pygame.time.Clock()
-    gamebtns = [Button((255, 255, 255), 230, 200+i*70, 200, 50, "Game {0}".format(i)) for i in range(5)]
+    try:
+        numgames = int(net.totalgames)
+    except:
+        return -1
+    else:
+        numid = net.getId()
+        gamebtns = [Button((255, 255, 255), 230, 200+i*70, 200, 50, "Game {0}".format(numid[i])) for i in range(numgames)]
 
-    while run:
-        clock.tick(60)
-        win.fill((128, 128, 128))
-        for btns in gamebtns:
-            btns.draw(win)
-        
-        pygame.display.update()
+        while run:
+            clock.tick(60)
+            win.fill((128, 128, 128))
+            for btns in gamebtns:
+                btns.draw(win)
+            
+            pygame.display.update()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                run = False
-    return
+            res = -1
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    for i in range(len(gamebtns)):
+                        if gamebtns[i].isOver(event.pos):
+                            res = i
+                    run = False
+        return numid[res]
 
 def player_menuscreen(n):
     run = True
@@ -258,23 +269,39 @@ def player_menuscreen(n):
 def main(username, viewer):
     run = True
     clock = pygame.time.Clock()
+
     n = Network(viewer)
-    if viewer == False:
-        if player_menuscreen(n) == 1:
-            spectate_menuscreen(n)
-    try:
-        player = int(n.getPlayer())
-        print(player)
-    except:
-        win.fill((128, 128, 128))
-        fontt = pygame.font.SysFont("comicsans", 60)
-        text = fontt.render("No games yet!", 1, (255,0,0))
-        win.blit(text, (200,200))
-        pygame.display.update()
-        pygame.time.delay(2000)
-        menu_screen()
-    if viewer == True:
-        spectate_menuscreen(n)
+    if not n.totalgames:
+        exit() #if bad connection, exit
+    gid = -1
+    if not viewer:
+        pr = player_menuscreen(n)
+        if pr == 1:
+            gid = spectate_menuscreen(n)
+        elif pr == -1:
+            win.fill((128, 128, 128))
+            fontt = pygame.font.SysFont("comicsans", 60)
+            text = fontt.render("No games yet!", 1, (255,0,0))
+            win.blit(text, (200,200))
+            pygame.display.update()
+            pygame.time.delay(2000)
+            menu_screen()
+        else:
+            gid = n.sendstr("new")
+            player = 0
+    else:
+        gid = spectate_menuscreen(n)
+        try:
+            player = int(n.getPlayer(int(gid), viewer))
+            print(player)
+        except:
+            win.fill((128, 128, 128))
+            fontt = pygame.font.SysFont("comicsans", 60)
+            text = fontt.render("No games yet!", 1, (255,0,0))
+            win.blit(text, (200,200))
+            pygame.display.update()
+            pygame.time.delay(2000)
+            menu_screen()
 
     zhai = False
 
@@ -290,7 +317,7 @@ def main(username, viewer):
             game = n.send("get")
         except:
             run = False
-            print("couldnt get game!")
+            print("couldnt get game! wtf????")
             break
         if game.opened:
             redrawWindow(game, player)
