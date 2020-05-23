@@ -8,8 +8,6 @@ class Network():
         self.port = 8888
         self.addr = (self.server, self.port)
         self.totalgames = self.connect(viewer)
-        #self.totalgameId = self.getId()
-        #self.player = self.getPlayer()
 
     def getPlayer(self, gameID, viewer = False):
         try:
@@ -37,6 +35,10 @@ class Network():
                 return res
 
     def connect(self, viewer = False):
+        '''
+            if this throws error, probably port issue, try uncomment this and dont use try
+            catch expression to see the error.
+        '''
         # self.client.connect(self.addr)
         # if viewer:
         #     self.client.send(str.encode("viewer"))

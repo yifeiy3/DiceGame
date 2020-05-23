@@ -45,24 +45,19 @@ def drawDices(game, p, hoff, woff):
 def checkValidMove(game, nv, namt, nz):
     if nz > game.z: #nz = True, z = False
         if namt < game.currAmt - 1:
-            #print("a")
             return False
     elif nz < game.z:
         if namt < game.currAmt + 2 or nv == 1:
-            #print("b")
             return False
     else:
         if namt < game.currAmt or (namt == game.currAmt and less(nv, game.currV)):
-            #print("c")
             return False
         if not nz and nv == 1:
-            #print("d")
             return False
     print("this is a valid move with val: {0}, amt: {1}, z: {2}".format(nv, namt, nz))
     return True
 
 def getPname(game, p):
-    #print("getPname is called with p = {0}".format(p))
     if p == 0:
         player = game.p1.name
     elif p == 1:
@@ -114,6 +109,7 @@ class InputBox():
             if self.rect.collidepoint(event.pos):
                 # Toggle the active variable.
                 self.active = not self.active
+                self.renewText()
             else:
                 self.active = False
             # Change the current color of the input box.
@@ -180,23 +176,23 @@ def redrawWindow(game, p):
         p1 = getPname(game, 0)
         p2 = getPname(game, 1)
         tt1 = font.render(p1 + " has: ", 1, (0, 0, 0), True)
-        #TODO: draw dice here
+
         drawDices(game, 0, 100, 230)
         tt2 = font.render(p2 + " has: ", 1, (0, 0, 0), True)
         drawDices(game, 1, 100, 380)
-        #TODO: draw dice here
         win.blit(tt1, (100, 170))
         win.blit(tt2, (100, 300))
+
         res1 = font.render("Opened under condition:", 1, (0, 0, 0), True)
         res2 = font.render("Amt: {0}, Val: {1}: Zhai?: {2}".format(game.currAmt, game.currV, game.z), 1, (0, 0, 0), True)
         win.blit(res1, (100, 500))
         win.blit(res2, (100, 550))
         pygame.display.update()
     else:
-        #TODO: draw the dice, somehow..
         info = font.render("Current amt: {0}, val: {1}, zhai? :{2}".format(game.currAmt, game.currV, game.z), 1, (0,0,0), True)
         win.blit(info, (50, 50))
         drawDices(game, p, 130, 230)
+
         if game.currTurn == p:
             for i in range(2):
                 zButton[i].draw(win)
@@ -218,7 +214,7 @@ def spectate_menuscreen(net):
     try:
         numgames = int(net.totalgames)
     except:
-        return -2
+        return -1
     else:
         if numgames == 0:
             return -1
@@ -244,7 +240,6 @@ def spectate_menuscreen(net):
                             res = i
                             break
                     run = False
-        print(numid[res])
         return numid[res]
 
 def player_menuscreen(n):
@@ -360,11 +355,11 @@ def main(username, viewer):
             game = n.send("get")
         except:
             run = False
-            print("couldnt get game! wtf????")
+            print("couldnt get game!")
             break
         if game.opened:
             redrawWindow(game, player)
-            pygame.time.delay(10000) #show the screen for 10 seconds
+            pygame.time.delay(7000) #show the screen for 7 seconds
             if player == 1:
                 try:
                     zhai = False
@@ -397,17 +392,16 @@ def main(username, viewer):
                             game = n.send("kai")
                         else:
                             if zButton[0].isOver(pos):
-                                print("zflag button is clicked!")
                                 zhai = True
                                 zButton[0].recolor((0, 255, 0))
                                 zButton[1].recolor((128, 128, 128))
+
                             elif zButton[1].isOver(pos):
                                 zhai = False
                                 zButton[1].recolor((0, 255, 0))
                                 zButton[0].recolor((128, 128, 128))
                             elif AButton[1].isOver(pos):
                                 #number, value, zhai or not to play
-                                print("call button is clicked")
                                 try:
                                     valid = checkValidMove(game, int(callInput[1].text), int(callInput[0].text), zhai)
                                     if valid:
@@ -418,7 +412,6 @@ def main(username, viewer):
                                         zButton[1].recolor((128, 128, 128))
                                         game = n.send(data)
                                     else:
-                                        print("we got here haha")
                                         txt = font.render("Invalid Move, check amount and value", 1, (255,0,0), True)
                                         win.blit(txt, (40, 400))
                                         pygame.display.update()

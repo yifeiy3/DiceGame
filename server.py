@@ -52,15 +52,8 @@ def threaded_client(conn, p, gameID):
                         else:
                             print("i got here with data: {0}".format(data))
                             param = data.split(",")
-                            # if(param[2] == "False"):
-                            #     nz = False
-                            # else:
-                            #     nz = True
                             game.jiao(int(param[1]), int(param[0]), param[2])
-                            # print(game.currV)
-                            # print(game.z)
-                            # print(nz)
-                            #print(bool(param[2]))
+
                     conn.sendall(pickle.dumps(game)) #send the game information
             else:
                 break
@@ -104,7 +97,6 @@ while True: #listen for connections
             vi = True
 
         elif d == "reset":
-            #conn.send(str.encode(str("connection closed")))
             conn.close
             runn = False
 
@@ -127,7 +119,6 @@ while True: #listen for connections
                     conn.send(str.encode("NAN"))
                     print("The server has reached max games")
                 else:
-                    #conn.send(str.encode(str(gameID)))
                     l[gameID] = False
                     games[gameID] = Game(gameID)
                     goodconn = True
@@ -140,7 +131,6 @@ while True: #listen for connections
                     print("bad gameID: {0}".format(gameID))
                     break
                 else:
-                #gameID = int(d[5:])
                     if not vi:
                         if games[gameID].ready:
                             conn.send(str.encode("FULL"))
@@ -159,16 +149,3 @@ while True: #listen for connections
         start_new_thread(threaded_client, (conn, p, gameID))
 
             
-
-    # else:
-    #     idCount += 1 #this part probably will be changed
-    #     p = 0
-    #     gameID = (idCount - 1)//2
-    #     if idCount % 2 == 1:
-    #         games[gameID] = Game(gameID)
-    #         print("Creating a new game")
-    #     else:
-    #         games[gameID].ready = True
-    #         p = 1
-    # print("got here")
-    # start_new_thread(threaded_client, (conn, p, gameID))
