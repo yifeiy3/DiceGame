@@ -4,7 +4,7 @@ import pickle
 from game import Game
 
 server = "127.0.0.1"
-port = 6666
+port = 8888
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 l = [True for i in range(10)]
@@ -103,6 +103,11 @@ while True: #listen for connections
             conn.send(str.encode(str(len(games)))) #number of active games
             vi = True
 
+        elif d == "reset":
+            #conn.send(str.encode(str("connection closed")))
+            conn.close
+            runn = False
+
         elif d == "id":
             r = ""
             for items in games.keys():
@@ -119,7 +124,7 @@ while True: #listen for connections
                 p = 0
                 gameID = findNext(l)
                 if gameID == -1:
-                    conn.send(str.encode("The server has reached max games"))
+                    conn.send(str.encode("NAN"))
                     print("The server has reached max games")
                 else:
                     #conn.send(str.encode(str(gameID)))
@@ -129,21 +134,22 @@ while True: #listen for connections
                     runn = False
             else:
                 try:
-                    gameID = int(d)
+                    print(d)
+                    gameID = int(d[5:])
                 except:
                     print("bad gameID: {0}".format(gameID))
+                    break
                 else:
                 #gameID = int(d[5:])
                     if not vi:
                         if games[gameID].ready:
-                            conn.send(str.encode("Game room already full"))
+                            conn.send(str.encode("FULL"))
                             print("Game room already full")
                             continue
                         else:
                             games[gameID].ready = True
                             p = 1
                     else:
-                        games[gameID].ready = True
                         p = -1
                     vi = False
                     goodconn = True

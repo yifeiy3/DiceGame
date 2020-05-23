@@ -5,7 +5,7 @@ class Network():
     def __init__(self, viewer = False):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = "127.0.0.1"
-        self.port = 6666
+        self.port = 8888
         self.addr = (self.server, self.port)
         self.totalgames = self.connect(viewer)
         #self.totalgameId = self.getId()

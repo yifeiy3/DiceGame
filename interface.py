@@ -218,8 +218,10 @@ def spectate_menuscreen(net):
     try:
         numgames = int(net.totalgames)
     except:
-        return -1
+        return -2
     else:
+        if numgames == 0:
+            return -1
         numid = net.getId()
         gamebtns = [Button((255, 255, 255), 230, 200+i*70, 200, 50, "Game {0}".format(numid[i])) for i in range(numgames)]
 
@@ -240,13 +242,16 @@ def spectate_menuscreen(net):
                     for i in range(len(gamebtns)):
                         if gamebtns[i].isOver(event.pos):
                             res = i
+                            break
                     run = False
+        print(numid[res])
         return numid[res]
 
 def player_menuscreen(n):
     run = True
     clock = pygame.time.Clock()
-    abutns = [Button((255, 255, 255), 230, 300, 200, 50, "New"), Button((255, 255, 255), 230, 400, 200, 50, "Join")]
+    abutns = [Button((255, 255, 255), 230, 200, 200, 50, "New"), Button((255, 255, 255), 230, 300, 200, 50, "Join"),
+    Button((255, 255, 255), 230, 400, 200, 50, "Back")]
 
     while run:
         clock.tick(60)
@@ -264,6 +269,8 @@ def player_menuscreen(n):
                     return 0
                 elif abutns[1].isOver(event.pos):
                     return 1
+                elif abutns[2].isOver(event.pos):
+                    return 2
     return 0
 
 def main(username, viewer):
@@ -278,19 +285,54 @@ def main(username, viewer):
         pr = player_menuscreen(n)
         if pr == 1:
             gid = spectate_menuscreen(n)
-        elif pr == -1:
+            if gid == -1:
+                win.fill((128, 128, 128))
+                fontt = pygame.font.SysFont("comicsans", 60)
+                text = fontt.render("No games yet!", 1, (255,0,0))
+                win.blit(text, (200,200))
+                pygame.display.update()
+                pygame.time.delay(2000)
+                n.client.send(str.encode("reset"))
+                menu_screen()
+            try:
+                player = int(n.getPlayer(int(gid), viewer))
+            except:
+                win.fill((128, 128, 128))
+                fontt = pygame.font.SysFont("comicsans", 60)
+                text = fontt.render("Room Full!", 1, (255,0,0))
+                win.blit(text, (200,200))
+                pygame.display.update()
+                pygame.time.delay(2000)
+                n.client.send(str.encode("reset"))
+                menu_screen()
+        elif pr == 2:
+                win.fill((128, 128, 128))
+                n.client.send(str.encode("reset"))
+                menu_screen()
+        else:
+            gid = n.sendstr("new")
+            if gid == "NAN":
+                win.fill((128, 128, 128))
+                text1 = font.render("The server has reached max games.", 1, (255,0,0))
+                win.blit(text1, (100,200))
+                text2 = font.render("Please wait.", 1, (255,0,0))
+                win.blit(text2, (250,300))
+                pygame.display.update()
+                pygame.time.delay(2000)
+                n.client.send(str.encode("reset"))
+                menu_screen()
+            player = 0
+    else:
+        gid = spectate_menuscreen(n)
+        if gid == -1:
             win.fill((128, 128, 128))
             fontt = pygame.font.SysFont("comicsans", 60)
             text = fontt.render("No games yet!", 1, (255,0,0))
             win.blit(text, (200,200))
             pygame.display.update()
             pygame.time.delay(2000)
+            n.client.send(str.encode("reset"))
             menu_screen()
-        else:
-            gid = n.sendstr("new")
-            player = 0
-    else:
-        gid = spectate_menuscreen(n)
         try:
             player = int(n.getPlayer(int(gid), viewer))
             print(player)
@@ -301,6 +343,7 @@ def main(username, viewer):
             win.blit(text, (200,200))
             pygame.display.update()
             pygame.time.delay(2000)
+            n.sendstr("reset")
             menu_screen()
 
     zhai = False
