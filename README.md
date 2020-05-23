@@ -13,8 +13,7 @@ Then, people can join the game by running client file:
 One can optionally input username, and can create/join rooms. An spectator feature is also included.
 
 # Rules of the Game
-Details:
-    * https://en.wikipedia.org/wiki/Liar%27s_dice
+**Details: https://en.wikipedia.org/wiki/Liar%27s_dice**
 
 The game is called liar's dice, where each player rolls 5 dies, each knowing their own dice values but not the others, and is trying to guess the total amount of one individual face value for both players.
 
